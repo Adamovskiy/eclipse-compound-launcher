@@ -1,21 +1,24 @@
 package info.adamovskiy.compound.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 
-import info.adamovskiy.compound.ConfigurationService;
+import info.adamovskiy.compound.ConfigurationKeys;
+import info.adamovskiy.compound.ConfigurationUtils;
 
 public class CompoundElementsTab extends AbstractLaunchConfigurationTab {
     private final String mode;
-    private ILaunchConfiguration configuration;
+    private ConfigurationsSelector configurationsSelector;
 
     CompoundElementsTab(String mode) {
         this.mode = mode;
@@ -27,19 +30,18 @@ public class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         setControl(rootGroup);
         GridLayoutFactory.swtDefaults().numColumns(1).applyTo(rootGroup);
 
-        for (ILaunchConfiguration conf : ConfigurationService.getAllConfigurations()) {
-            if (conf == configuration) { // TODO not works, fix it
-                continue;
-            }
-            try {
-                final Label label = new Label(rootGroup, SWT.NONE);
-                label.setText(conf.getType().getName() + "#" + conf.getName());
-                GridDataFactory.swtDefaults().applyTo(label);
-                GridDataFactory.fillDefaults().grab(true, false).applyTo(label);
-            } catch (CoreException e) {
-                e.printStackTrace();
-            }
+        configurationsSelector = new ConfigurationsSelector(rootGroup, SWT.NONE);
+        configurationsSelector.setConfigurationChangesListener(this::onChange);
+    }
+
+    private void onChange() {
+        setDirty(true);
+        if (configurationsSelector.getSelected().isEmpty()) {
+            super.setErrorMessage("Configurations are not selected");
+        } else {
+            super.setErrorMessage(null);
         }
+        updateLaunchConfigurationDialog();
     }
 
     @Override
@@ -49,19 +51,31 @@ public class CompoundElementsTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
-        this.configuration = configuration;
+        configurationsSelector.clear();
+        final List<ILaunchConfiguration> otherConfigurations = ConfigurationUtils.getAllConfigurations().stream()
+                .filter(c -> !ConfigurationUtils.equals(c, configuration)).collect(Collectors.toList());
+        configurationsSelector.setConfigurations(otherConfigurations);
+
+        try {
+            final List<String> selectedString = configuration.getAttribute(ConfigurationKeys.CONFIGS_KEY, new ArrayList<>());
+            final List<ILaunchConfiguration> selected = selectedString.stream().map(ConfigurationUtils::deserialize)
+                    .collect(Collectors.toList());
+            configurationsSelector.setSelected(selected);
+        } catch (CoreException e) {
+            throw new RuntimeException(e);
+        }
+        onChange();
     }
 
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-        // TODO Auto-generated method stub
-
+        final List<String> serializedConfigs = configurationsSelector.getSelected().stream()
+                .map(ConfigurationUtils::serialize).collect(Collectors.toList());
+        configuration.setAttribute(ConfigurationKeys.CONFIGS_KEY, serializedConfigs);
     }
 
     @Override
     public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-        // TODO Auto-generated method stub
-
     }
 
 }
