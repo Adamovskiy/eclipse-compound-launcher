@@ -9,7 +9,7 @@ public class CompoundTabGroup extends AbstractLaunchConfigurationTabGroup {
 
     @Override
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-        setTabs(new ILaunchConfigurationTab[]{new CompoundElementsTab(mode), new CommonTab()});
+        setTabs(new ILaunchConfigurationTab[]{new CompoundElementsTab(), new CommonTab()});
     }
 
 }

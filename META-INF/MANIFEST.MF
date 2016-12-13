@@ -5,10 +5,12 @@ Bundle-SymbolicName: CompoundLauncher;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: info.adamovskiy.compound.Activator
 Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.ui.console
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.debug.core,
  org.eclipse.debug.core.model,
  org.eclipse.debug.internal.ui,
- org.eclipse.debug.ui
+ org.eclipse.debug.ui,
+ org.eclipse.ui.console
