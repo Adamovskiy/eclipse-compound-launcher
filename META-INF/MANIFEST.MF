@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0
 Bundle-Activator: info.adamovskiy.compound.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ org.eclipse.jdt.annotation
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.debug.core,

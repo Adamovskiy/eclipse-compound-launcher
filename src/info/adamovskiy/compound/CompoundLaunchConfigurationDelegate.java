@@ -1,9 +1,5 @@
 package info.adamovskiy.compound;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
@@ -11,6 +7,10 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.debug.internal.ui.DebugUIPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CompoundLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
     @Override
@@ -24,12 +24,11 @@ public class CompoundLaunchConfigurationDelegate extends LaunchConfigurationDele
         try {
             // TODO support async launch
             for (ConfigData data : configurations) {
-                System.out.println(data.typeName + "#" + data.name);
+                System.out.println(data.identity.typeName + "#" + data.identity.name);
 
-                final ILaunchConfiguration subConfig = ConfigurationUtils.findConfiuration(data.typeName, data.name);
-                if (subConfig == null){
-                    throw new IllegalStateException("Configuration " + data.name + " of type " + data.typeName +
-                            "no longer exist");
+                final ILaunchConfiguration subConfig = ConfigurationUtils.findConfiguration(data.identity);
+                if (subConfig == null) {
+                    throw new IllegalStateException("Configuration " + data.identity.name + " of type " + data.identity.typeName + "no longer exist");
                 }
                 final String effectiveMode = data.modeOverride == null ? mode : data.modeOverride;
                 DebugUIPlugin.buildAndLaunch(subConfig, effectiveMode, new SubProgressMonitor(progressMonitor, 100));

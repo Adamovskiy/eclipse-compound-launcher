@@ -1,8 +1,6 @@
 package info.adamovskiy.compound.ui;
 
-import info.adamovskiy.compound.ConfigData;
-import info.adamovskiy.compound.ConfigurationKeys;
-import info.adamovskiy.compound.ConfigurationUtils;
+import info.adamovskiy.compound.*;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
@@ -28,6 +26,7 @@ import java.util.stream.Collectors;
 class CompoundElementsTab extends AbstractLaunchConfigurationTab {
     private ConfigsTable table;
     private Map<ILaunchConfigurationType, List<ILaunchConfiguration>> availableConfigs;
+    private ConfigurationIdentity thisIdentity;
 
     @Override
     public void createControl(Composite parent) {
@@ -63,12 +62,24 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         table.setLayoutData(new GridData(GridData.FILL_BOTH));
     }
 
-    private void updateDialog() {
+    private void validate() {
         if (table.getValues().isEmpty()) {
-            super.setErrorMessage("Configurations are not selected");
+            setErrorMessage("Configurations are not selected");
         } else {
-            super.setErrorMessage(null);
+            List<ConfigurationIdentity> selfNesting = ConfigurationValidator.findSelfNesting(thisIdentity, table
+                    .getValues(), availableConfigs);
+            if (selfNesting != null) {
+                setErrorMessage("Self-nesting found. Path:\n" +
+                        selfNesting.stream().map(id -> id.typeName + "#" + id.name).collect(Collectors.joining("\n")));
+            } else {
+                setErrorMessage(table.getValidationError());
+            }
         }
+
+    }
+
+    private void updateDialog() {
+        validate();
         updateLaunchConfigurationDialog();
     }
 
@@ -86,7 +97,8 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
         table.clearValues();
-        // TODO filter out current
+        thisIdentity = new ConfigurationIdentity(configuration.getName(),
+                ConfigurationUtils.getTypeUnchecked(configuration).getName());
         availableConfigs = ConfigurationUtils.getAllConfigurations().stream().collect(Collectors.groupingBy(
                 ConfigurationUtils::getTypeUnchecked));
 
@@ -121,8 +133,11 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
             if (addedConfigs == null || addedConfigs.isEmpty()) {
                 return;
             }
-            table.addValues(addedConfigs.stream().map(c -> new ConfigData(c.getName(), ConfigurationUtils
-                    .getTypeUnchecked(c).getName(), null)).collect(Collectors.toList()));
+            table.addValues(addedConfigs
+                    .stream()
+                    .map(c -> new ConfigData(new ConfigurationIdentity(c.getName(),
+                            ConfigurationUtils.getTypeUnchecked(c).getName()), null))
+                    .collect(Collectors.toList()));
         }
     }
 }

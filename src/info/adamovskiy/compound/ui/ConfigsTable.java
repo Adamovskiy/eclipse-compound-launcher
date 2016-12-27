@@ -23,8 +23,8 @@ import java.util.stream.IntStream;
 class ConfigsTable extends Composite {
     private final TableViewer viewer;
     private final List<ConfigData> configs = new ArrayList<>();
+    private final ModeColumnProvider modeColumnProvider;
     private Runnable listener;
-
     ConfigsTable(Composite parent) {
         super(parent, SWT.NONE);
         setLayout(new FillLayout());
@@ -47,14 +47,14 @@ class ConfigsTable extends Composite {
             @Override
             public String getText(Object element) {
                 ConfigData data = configs.get((int) element);
-                return data.typeName;
+                return data.identity.typeName;
             }
 
             @Override
             public Image getImage(Object element) {
                 final ConfigData data = configs.get((Integer) element);
                 final ILaunchConfiguration configuration =
-                        ConfigurationUtils.findConfiuration(data.typeName, data.name);
+                        ConfigurationUtils.findConfiguration(data.identity);
                 return ConfigurationUtils.getImage(ConfigurationUtils.getTypeUnchecked(configuration));
             }
         });
@@ -67,7 +67,7 @@ class ConfigsTable extends Composite {
             @Override
             public String getText(Object element) {
                 ConfigData data = configs.get((int) element);
-                return data.name;
+                return data.identity.name;
             }
         });
 
@@ -75,71 +75,16 @@ class ConfigsTable extends Composite {
         column.setText("Mode override");
         column.setWidth(100);
         final TableViewerColumn modeCol = new TableViewerColumn(viewer, column);
-        modeCol.setLabelProvider(new ColumnLabelProvider() {
-            final Map<Object, CCombo> combos = new HashMap<>();
-
-            @Override
-            public void update(ViewerCell cell) {
-                TableItem item = (TableItem) cell.getItem();
-
-                Integer index = (Integer) item.getData();
-                ConfigData data = configs.get(index);
-
-                CCombo combo = combos.get(cell.getElement());
-                if (combo == null || combo.isDisposed()) {
-                    combo = new CCombo((Composite) cell.getViewerRow().getControl(), SWT.NONE);
-                    combo.setEditable(false);
-                    final ILaunchConfiguration configuration =
-                            ConfigurationUtils.findConfiuration(data.typeName, data.name);
-                    // TODO what does "mode combination" means?
-                    final Set<Set<String>> supportedModeCombinations =
-                            ConfigurationUtils.getTypeUnchecked(configuration).getSupportedModeCombinations();
-                    final List<String> values =
-                            supportedModeCombinations.stream().flatMap(Collection::stream).collect(Collectors.toList());
-                    values.add(0, null);
-                    combo.setData(values);
-                    combo.setItems(
-                            values.stream().map(s -> s == null ? "<No override>" : s).collect(Collectors.toList())
-                                  .toArray(new String[0]));
-                    combo.addSelectionListener(new SelectionAdapter() {
-                        @Override
-                        public void widgetSelected(SelectionEvent e) {
-                            if (e.widget.isDisposed()) {
-                                return;
-                            }
-                            CCombo c = (CCombo) e.widget;
-                            final String selected = values.get(c.getSelectionIndex());
-                            configs.set(index, new ConfigData(data.name, data.typeName, selected));
-                            onChange();
-                        }
-                    });
-                    combos.put(cell.getElement(), combo);
-                }
-
-                final List<String> options = (List<String>) combo.getData();
-
-                final int selectedIdx = options.indexOf(data.modeOverride);
-                if (selectedIdx == -1) {
-                    // TODO add validation error
-                    combo.setText("*SELECTED MODE IS NOT SUPPORTED ANYMORE*");
-                } else {
-                    combo.select(selectedIdx);
-                }
-
-                TableEditor editor = new TableEditor(item.getParent());
-                editor.grabHorizontal = true;
-                editor.grabVertical = true;
-                editor.setEditor(combo, item, cell.getColumnIndex());
-                editor.layout();
-            }
-
-        });
+        modeColumnProvider = new ModeColumnProvider();
+        modeCol.setLabelProvider(modeColumnProvider);
 
         column = new TableColumn(viewer.getTable(), SWT.NONE);
         column.setText("");
         column.setWidth(100);
         final TableViewerColumn actionsCol = new TableViewerColumn(viewer, column);
         actionsCol.setLabelProvider(new ColumnLabelProvider() {
+            private final Map<Object, Composite> composites = new HashMap<>();
+
             private void createButton(Composite group, String caption, Runnable handler) {
                 Button button = new Button(group, SWT.PUSH);
                 button.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -155,8 +100,6 @@ class ConfigsTable extends Composite {
                     }
                 });
             }
-
-            private final Map<Object, Composite> composites = new HashMap<>();
 
             @Override
             public void update(ViewerCell cell) {
@@ -184,6 +127,10 @@ class ConfigsTable extends Composite {
                 editor.layout();
             }
         });
+    }
+
+    String getValidationError() {
+        return modeColumnProvider.getValidationError();
     }
 
     private void onChange() {
@@ -228,5 +175,71 @@ class ConfigsTable extends Composite {
     void addValues(List<ConfigData> values) {
         configs.addAll(values);
         onChange();
+    }
+
+    private class ModeColumnProvider extends ColumnLabelProvider {
+        private final Map<Object, CCombo> combos = new HashMap<>();
+        private final BitSet validities = new BitSet();
+
+        private void setValidity(int index, boolean valid) {
+            validities.set(index, valid);
+        }
+
+        String getValidationError() {
+            return validities.cardinality() == validities.length() ? null : "Some item configurations are invalid";
+        }
+
+        @Override
+        public void update(ViewerCell cell) {
+            TableItem item = (TableItem) cell.getItem();
+
+            Integer index = (Integer) item.getData();
+            setValidity(index, true);
+            ConfigData data = configs.get(index);
+
+            CCombo combo = combos.get(cell.getElement());
+            if (combo == null || combo.isDisposed()) {
+                combo = new CCombo((Composite) cell.getViewerRow().getControl(), SWT.NONE);
+                combo.setEditable(false);
+                final ILaunchConfiguration configuration = ConfigurationUtils.findConfiguration(data.identity);
+                // TODO what does "mode combination" means?
+                final Set<Set<String>> supportedModeCombinations =
+                        ConfigurationUtils.getTypeUnchecked(configuration).getSupportedModeCombinations();
+                final List<String> values =
+                        supportedModeCombinations.stream().flatMap(Collection::stream).collect(Collectors.toList());
+                values.add(0, null);
+                combo.setData(values);
+                combo.setItems(values.stream().map(s -> s == null ? "<No override>" : s).collect(Collectors.toList()).toArray(new String[0]));
+                combo.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        if (e.widget.isDisposed()) {
+                            return;
+                        }
+                        CCombo c = (CCombo) e.widget;
+                        final String selected = values.get(c.getSelectionIndex());
+                        configs.set(index, new ConfigData(data.identity, selected));
+                        onChange();
+                    }
+                });
+                combos.put(cell.getElement(), combo);
+            }
+
+            final List<String> options = (List<String>) combo.getData();
+
+            final int selectedIdx = options.indexOf(data.modeOverride);
+            if (selectedIdx == -1) {
+                combo.setText("*SELECTED MODE IS NOT SUPPORTED ANYMORE*");
+                setValidity(index, false);
+            } else {
+                combo.select(selectedIdx);
+            }
+
+            TableEditor editor = new TableEditor(item.getParent());
+            editor.grabHorizontal = true;
+            editor.grabVertical = true;
+            editor.setEditor(combo, item, cell.getColumnIndex());
+            editor.layout();
+        }
     }
 }

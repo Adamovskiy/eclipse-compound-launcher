@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class ConfigurationUtils {
+    private static final String SERIAL_SEPARATOR = ":";
+
     private ConfigurationUtils() {
     }
 
@@ -36,8 +38,6 @@ public class ConfigurationUtils {
                 Objects.equals(getTypeUnchecked(a).getName(), getTypeUnchecked(b).getName());
     }
 
-    private static final String SERIAL_SEPARATOR = ":";
-
     private static String encode(String part) {
         return part == null ? "" : Base64.getEncoder().encodeToString(part.getBytes());
     }
@@ -47,10 +47,10 @@ public class ConfigurationUtils {
         return result.isEmpty() ? null : result;
     }
 
-    public static ILaunchConfiguration findConfiuration(String typeName, String name) {
+    public static ILaunchConfiguration findConfiguration(ConfigurationIdentity needle) {
         for (ILaunchConfiguration configuration : getAllConfigurations()) {
-            if (Objects.equals(configuration.getName(), name) &&
-                    Objects.equals(getTypeUnchecked(configuration).getName(), typeName)) {
+            if (Objects.equals(configuration.getName(), needle.name) &&
+                    Objects.equals(getTypeUnchecked(configuration).getName(), needle.typeName)) {
                 return configuration;
             }
         }
@@ -58,17 +58,17 @@ public class ConfigurationUtils {
     }
 
     public static String serialize(ConfigData configData) {
-        return encode(configData.name) + SERIAL_SEPARATOR + encode(configData.typeName) +
+        return encode(configData.identity.name) + SERIAL_SEPARATOR + encode(configData.identity.typeName) +
                 (configData.modeOverride == null ? "" : SERIAL_SEPARATOR + encode(configData.modeOverride));
     }
 
     public static ConfigData deserialize(String string) {
         final String[] parts = string.split(SERIAL_SEPARATOR);
         if (parts.length == 3) {
-            return new ConfigData(decode(parts[0]), decode(parts[1]), decode(parts[2]));
+            return new ConfigData(new ConfigurationIdentity(decode(parts[0]), decode(parts[1])), decode(parts[2]));
         }
         if (parts.length == 2) {
-            return new ConfigData(decode(parts[0]), decode(parts[1]), null);
+            return new ConfigData(new ConfigurationIdentity(decode(parts[0]), decode(parts[1])), null);
         }
         throw new IllegalArgumentException("Illegal configuration value: " + string);
     }

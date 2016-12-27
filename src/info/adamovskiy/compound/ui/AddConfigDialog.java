@@ -1,12 +1,6 @@
 package info.adamovskiy.compound.ui;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
+import info.adamovskiy.compound.ConfigurationUtils;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
@@ -14,16 +8,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.*;
 
-import info.adamovskiy.compound.ConfigurationUtils;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 class AddConfigDialog extends TitleAreaDialog {
     private final Map<ILaunchConfigurationType, List<ILaunchConfiguration>> available;
+    private List<ILaunchConfiguration> selected = Collections.emptyList();
 
     AddConfigDialog(Shell parentShell, Map<ILaunchConfigurationType, List<ILaunchConfiguration>> available) {
         super(parentShell);
@@ -53,13 +46,11 @@ class AddConfigDialog extends TitleAreaDialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 selected = Arrays.stream(tree.getSelection()).map(item -> (ILaunchConfiguration) item.getData())
-                                 .filter(Objects::nonNull).collect(Collectors.toList());
+                        .filter(Objects::nonNull).collect(Collectors.toList());
             }
         });
         return superArea;
     }
-
-    private List<ILaunchConfiguration> selected = Collections.emptyList();
 
     List<ILaunchConfiguration> getSelected() {
         return selected;
