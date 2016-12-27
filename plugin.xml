@@ -17,4 +17,12 @@
                 type="info.adamovskiy.compound.launchConfigurationType">
         </launchConfigurationTabGroup>
     </extension>
+    
+   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+         <launchConfigurationTypeImage
+          	icon="icons/main.png"
+			configTypeID="info.adamovskiy.compound.launchConfigurationType"
+			id="info.adamovskiy.compound.launchConfigurationTypeImages">
+	     </launchConfigurationTypeImage>       
+   </extension>
 </plugin>
