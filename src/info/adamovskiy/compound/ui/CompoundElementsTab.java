@@ -99,6 +99,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         table.clearValues();
         thisIdentity = new ConfigurationIdentity(configuration.getName(),
                 ConfigurationUtils.getTypeUnchecked(configuration).getName());
+        table.setParentMode(getLaunchConfigurationDialog().getMode());
         availableConfigs = ConfigurationUtils.getAllConfigurations().stream().collect(Collectors.groupingBy(
                 ConfigurationUtils::getTypeUnchecked));
 

@@ -5,6 +5,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.internal.ui.DebugPluginImages;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.graphics.Image;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ public class ConfigurationUtils {
         return result.isEmpty() ? null : result;
     }
 
+    @Nullable
     public static ILaunchConfiguration findConfiguration(ConfigurationIdentity needle) {
         for (ILaunchConfiguration configuration : getAllConfigurations()) {
             if (Objects.equals(configuration.getName(), needle.name) &&
