@@ -42,7 +42,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         buttons.setLayout(new RowLayout());
         buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
         asyncCheckbox = new Button(buttons, SWT.CHECK);
-        asyncCheckbox.setText("Asynchronous execution");
+        asyncCheckbox.setText(Messages.CompoundElementsTab_async_checkbox);
         asyncCheckbox.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -50,7 +50,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
             }
         });
         final Button addNewButton = new Button(buttons, SWT.PUSH);
-        addNewButton.setText("Add...");
+        addNewButton.setText(Messages.CompoundElementsTab_add_button);
         addNewButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -59,7 +59,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         });
 
         final Button clearButton = new Button(buttons, SWT.PUSH);
-        clearButton.setText("Clear");
+        clearButton.setText(Messages.CompoundElementsTab_clear_button);
         clearButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -73,13 +73,13 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
 
     private void validate() {
         if (table.getValues().isEmpty()) {
-            setErrorMessage("Configurations are not selected");
+            setErrorMessage(Messages.CompoundElementsTab_error_empty_configs);
         } else {
             List<ConfigurationIdentity> selfNesting = ConfigurationValidator.findSelfNesting(thisIdentity, table
                     .getValues(), availableConfigs);
             if (selfNesting != null) {
-                setErrorMessage("Self-nesting found. Path:\n" +
-                        selfNesting.stream().map(id -> id.typeName + "#" + id.name).collect(Collectors.joining("\n")));
+                setErrorMessage(Messages.CompoundElementsTab_error_self_nesting + "\n" + //$NON-NLS-1$
+                        selfNesting.stream().map(id -> id.typeName + "#" + id.name).collect(Collectors.joining("\n"))); //$NON-NLS-1$ //$NON-NLS-2$
             } else {
                 setErrorMessage(table.getValidationError());
             }
@@ -99,7 +99,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public String getName() {
-        return "Elements";
+        return Messages.CompoundElementsTab_name;
     }
 
     @Override

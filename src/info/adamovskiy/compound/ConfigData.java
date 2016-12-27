@@ -36,7 +36,7 @@ public class ConfigData {
 
     @Override
     public String toString() {
-        return "ConfigData{" + "identity=" + identity + ", modeOverride='" + modeOverride +
+        return "ConfigData{" + "identity=" + identity + ", modeOverride='" + modeOverride + //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                 '\'' + '}';
     }
 }

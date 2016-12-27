@@ -27,8 +27,8 @@ class AddConfigDialog extends TitleAreaDialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         Composite superArea = (Composite) super.createDialogArea(parent);
-        getShell().setText("Add configurations");
-        setTitle("Add configurations");
+        getShell().setText(Messages.AddConfigDialog_shell_text);
+        setTitle(Messages.AddConfigDialog_title);
         final Tree tree = new Tree(superArea, SWT.BORDER | SWT.MULTI);
         tree.setLayoutData(new GridData(GridData.FILL_BOTH));
         available.forEach((type, configs) -> {

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ConfigurationUtils {
-    private static final String SERIAL_SEPARATOR = ":";
+    private static final String SERIAL_SEPARATOR = ":"; //$NON-NLS-1$
 
     private ConfigurationUtils() {
     }
@@ -40,7 +40,7 @@ public class ConfigurationUtils {
     }
 
     private static String encode(String part) {
-        return part == null ? "" : Base64.getEncoder().encodeToString(part.getBytes());
+        return part == null ? "" : Base64.getEncoder().encodeToString(part.getBytes()); //$NON-NLS-1$
     }
 
     private static String decode(String part) {
@@ -61,7 +61,7 @@ public class ConfigurationUtils {
 
     public static String serialize(ConfigData configData) {
         return encode(configData.identity.name) + SERIAL_SEPARATOR + encode(configData.identity.typeName) +
-                (configData.modeOverride == null ? "" : SERIAL_SEPARATOR + encode(configData.modeOverride));
+                (configData.modeOverride == null ? "" : SERIAL_SEPARATOR + encode(configData.modeOverride)); //$NON-NLS-1$
     }
 
     public static ConfigData deserialize(String string) {
@@ -72,7 +72,7 @@ public class ConfigurationUtils {
         if (parts.length == 2) {
             return new ConfigData(new ConfigurationIdentity(decode(parts[0]), decode(parts[1])), null);
         }
-        throw new IllegalArgumentException("Illegal configuration value: " + string);
+        throw new IllegalArgumentException("Illegal configuration value: " + string); //$NON-NLS-1$
     }
 
     public static ILaunchConfigurationType getTypeUnchecked(ILaunchConfiguration configuration) {

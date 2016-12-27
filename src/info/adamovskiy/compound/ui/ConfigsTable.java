@@ -45,7 +45,7 @@ class ConfigsTable extends Composite {
         viewer.setContentProvider(new ArrayContentProvider());
 
         TableColumn column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Type");
+        column.setText(Messages.ConfigsTable_type_column);
         column.setWidth(200);
         final TableViewerColumn typeCol = new TableViewerColumn(viewer, column);
         typeCol.setLabelProvider(new ColumnLabelProvider() {
@@ -67,7 +67,7 @@ class ConfigsTable extends Composite {
         });
 
         column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Name");
+        column.setText(Messages.ConfigsTable_name_column);
         column.setWidth(200);
         final TableViewerColumn nameCol = new TableViewerColumn(viewer, column);
         nameCol.setLabelProvider(new ColumnLabelProvider() {
@@ -79,14 +79,14 @@ class ConfigsTable extends Composite {
         });
 
         column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Mode override");
+        column.setText(Messages.ConfigsTable_mode_column);
         column.setWidth(100);
         final TableViewerColumn modeCol = new TableViewerColumn(viewer, column);
         modeColumnProvider = new ModeColumnProvider();
         modeCol.setLabelProvider(modeColumnProvider);
 
         column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("");
+        column.setText(""); //$NON-NLS-1$
         column.setWidth(100);
         final TableViewerColumn actionsCol = new TableViewerColumn(viewer, column);
         actionsCol.setLabelProvider(new ColumnLabelProvider() {
@@ -124,10 +124,10 @@ class ConfigsTable extends Composite {
                     layout.horizontalSpacing = layout.marginHeight = layout.marginWidth = 0;
                     group.setLayout(layout);
 
-                    createButton(group, "⬆", () -> ConfigurationUtils.swapListElements(configs, index, index - 1), true);
-                    createButton(group, "⬇", () -> ConfigurationUtils.swapListElements(configs, index, index + 1), true);
-                    createButton(group, "✎", () -> editSubConfiguration(index), false);
-                    createButton(group, "✘", () -> configs.remove(index), true);
+                    createButton(group, "⬆", () -> ConfigurationUtils.swapListElements(configs, index, index - 1), true); //$NON-NLS-1$
+                    createButton(group, "⬇", () -> ConfigurationUtils.swapListElements(configs, index, index + 1), true); //$NON-NLS-1$
+                    createButton(group, "✎", () -> editSubConfiguration(index), false); //$NON-NLS-1$
+                    createButton(group, "✘", () -> configs.remove(index), true); //$NON-NLS-1$
 
                     composites.put(cell.getElement(), group);
                 }
@@ -226,7 +226,7 @@ class ConfigsTable extends Composite {
         }
 
         String getValidationError() {
-            return validities.cardinality() == validities.length() ? null : "Some item configurations are invalid";
+            return validities.cardinality() == validities.length() ? null : Messages.ConfigsTable_message_invalid_configs;
         }
 
         @Override
@@ -250,7 +250,7 @@ class ConfigsTable extends Composite {
                             supportedModeCombinations.stream().flatMap(Collection::stream).collect(Collectors.toList());
                     values.add(0, null);
                     combo.setData(values);
-                    combo.setItems(values.stream().map(s -> s == null ? "<No override>" : s).collect(Collectors.toList()).toArray(new String[0]));
+                    combo.setItems(values.stream().map(s -> s == null ? Messages.ConfigsTable_no_override : s).collect(Collectors.toList()).toArray(new String[0]));
                     combo.addSelectionListener(new SelectionAdapter() {
                         @Override
                         public void widgetSelected(SelectionEvent e) {
@@ -272,11 +272,11 @@ class ConfigsTable extends Composite {
             if (options == null) {
                 setValidity(index, false);
                 // TODO red color
-                combo.setText("*THERE IS NO SUCH CONFIGURATION ANYMORE*");
+                combo.setText(Messages.ConfigsTable_error_no_config);
             } else {
                 final int selectedIdx = options.indexOf(data.modeOverride);
                 if (selectedIdx == -1) {
-                    combo.setText("*SELECTED MODE IS NOT SUPPORTED ANYMORE*");
+                    combo.setText(Messages.ConfigsTable_error_unsupported_mode);
                     setValidity(index, false);
                 } else {
                     combo.select(selectedIdx);
