@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 class CompoundElementsTab extends AbstractLaunchConfigurationTab {
     private ConfigsTable table;
+    private Button asyncCheckbox;
     private Map<ILaunchConfigurationType, List<ILaunchConfiguration>> availableConfigs;
     private ConfigurationIdentity thisIdentity;
 
@@ -40,6 +41,14 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         final Composite buttons = new Composite(configurationsSelector, SWT.NONE);
         buttons.setLayout(new RowLayout());
         buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+        asyncCheckbox = new Button(buttons, SWT.CHECK);
+        asyncCheckbox.setText("Asynchronous execution");
+        asyncCheckbox.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                onChange();
+            }
+        });
         final Button addNewButton = new Button(buttons, SWT.PUSH);
         addNewButton.setText("Add...");
         addNewButton.addSelectionListener(new SelectionAdapter() {
@@ -83,7 +92,6 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         updateLaunchConfigurationDialog();
     }
 
-    // TODO suppress setDirty() in some cases of non-user update
     private void onChange() {
         setDirty(true);
         updateDialog();
@@ -108,6 +116,8 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
             final List<ConfigData> selected = selectedString.stream().map(ConfigurationUtils::deserialize)
                     .collect(Collectors.toList());
             table.setValues(selected);
+            asyncCheckbox.setSelection(configuration.getAttribute(ConfigurationKeys.ASYNC, false));
+
         } catch (CoreException e) {
             throw new RuntimeException(e);
         }
@@ -119,6 +129,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         final List<String> serializedConfigs = table.getValues().stream()
                 .map(ConfigurationUtils::serialize).collect(Collectors.toList());
         configuration.setAttribute(ConfigurationKeys.CONFIGS_KEY, serializedConfigs);
+        configuration.setAttribute(ConfigurationKeys.ASYNC, asyncCheckbox.getSelection());
     }
 
     @Override
