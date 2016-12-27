@@ -96,7 +96,6 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
-        table.clearValues();
         thisIdentity = new ConfigurationIdentity(configuration.getName(),
                 ConfigurationUtils.getTypeUnchecked(configuration).getName());
         table.setParentMode(getLaunchConfigurationDialog().getMode());
@@ -112,7 +111,7 @@ class CompoundElementsTab extends AbstractLaunchConfigurationTab {
         } catch (CoreException e) {
             throw new RuntimeException(e);
         }
-        onChange();
+        updateDialog();
     }
 
     @Override

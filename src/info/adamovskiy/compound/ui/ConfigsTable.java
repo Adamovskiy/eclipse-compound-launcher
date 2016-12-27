@@ -92,7 +92,7 @@ class ConfigsTable extends Composite {
         actionsCol.setLabelProvider(new ColumnLabelProvider() {
             private final Map<Object, Composite> composites = new HashMap<>();
 
-            private void createButton(Composite group, String caption, Runnable handler) {
+            private void createButton(Composite group, String caption, Runnable handler, boolean editor) {
                 Button button = new Button(group, SWT.PUSH);
                 button.setLayoutData(new GridData(GridData.FILL_BOTH));
                 button.setText(caption);
@@ -103,7 +103,11 @@ class ConfigsTable extends Composite {
                             return;
                         }
                         handler.run();
-                        onChange();
+                        if (editor) {
+                            onChange();
+                        } else {
+                            refresh();
+                        }
                     }
                 });
             }
@@ -120,10 +124,10 @@ class ConfigsTable extends Composite {
                     layout.horizontalSpacing = layout.marginHeight = layout.marginWidth = 0;
                     group.setLayout(layout);
 
-                    createButton(group, "⬆", () -> ConfigurationUtils.swapListElements(configs, index, index - 1));
-                    createButton(group, "⬇", () -> ConfigurationUtils.swapListElements(configs, index, index + 1));
-                    createButton(group, "✎", () -> editSubConfiguration(index));
-                    createButton(group, "✘", () -> configs.remove(index));
+                    createButton(group, "⬆", () -> ConfigurationUtils.swapListElements(configs, index, index - 1), true);
+                    createButton(group, "⬇", () -> ConfigurationUtils.swapListElements(configs, index, index + 1), true);
+                    createButton(group, "✎", () -> editSubConfiguration(index), false);
+                    createButton(group, "✘", () -> configs.remove(index), true);
 
                     composites.put(cell.getElement(), group);
                 }
@@ -161,11 +165,15 @@ class ConfigsTable extends Composite {
         return modeColumnProvider.getValidationError();
     }
 
-    private void onChange() {
+    private void refresh() {
         List<Integer> indexes = IntStream.rangeClosed(0, configs.size() - 1).boxed().collect(Collectors.toList());
         viewer.setInput(indexes);
         inputChanged();
         viewer.refresh();
+    }
+
+    private void onChange() {
+        refresh();
         if (listener != null) {
             listener.run();
         }
@@ -188,7 +196,7 @@ class ConfigsTable extends Composite {
     void setValues(Collection<ConfigData> selected) {
         configs.clear();
         configs.addAll(selected);
-        onChange();
+        refresh();
     }
 
     void clearValues() {
